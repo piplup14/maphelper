@@ -48,56 +48,55 @@
     }*/
     class Map {
         constructor(div) {
-            
             // init on div
-            //var myMap;
             this.myMap = new ymaps.Map(div, {
                 center: [52.9650800, 36.0784900],
                 zoom: 12
             });
             this.elements = [];
-        var placesPane = this.myMap.panes.get('places').getElement();
-        const canvas = document.createElement('canvas');
-        canvas.id = 'canvas';
-        placesPane.appendChild(canvas);
-        this.bindEvent();
+            var placesPane = this.myMap.panes.get('places').getElement();
+            const canvas = document.createElement('canvas');
+            canvas.id = 'canvas';
+            placesPane.appendChild(canvas);
+            this.ctx = canvas.getContext('2d');
+            const mapdiv = document.getElementById(div)
+            this.ctx.canvas.width = mapdiv.offsetWidth;
+            this.ctx.canvas.height = mapdiv.offsetHeight;
+            this.myMap.events.add('boundschange',(e) => {this.redraw();});
         }
         destroy() {
+            // remove from div and free all
             this.myMap.destroy();
-        // remove from div and free all
-        }
-        bindEvent(){
-            const redr = this.redraw();
-            this.myMap.events.add('boundschange',(e) => {this.redraw();});
         }
         redraw() {
             // full redraw all elements
-            const projection = this.myMap.options.get('projection');
-            let newB = this.myMap.getBounds();
-            let zoom = this.myMap.getZoom();
-            let leftCorn = this.myMap.converter.globalToPage(
+            let myMap = this.myMap
+            const projection = myMap.options.get('projection');
+            let newB = myMap.getBounds();
+            let zoom = myMap.getZoom();
+            let leftCorn = myMap.converter.globalToPage(
             projection.toGlobalPixels(
                 newB[1],
                 zoom
             )) 
+            let elemLength = this.elements.length;
+            let elements = this.elements;
             if (canvas.getContext){
-                var ctx = canvas.getContext('2d');
-                ctx.canvas.width = 800;
-                ctx.canvas.height = 450;
-                
+                let ctx = this.ctx;
+                let wid = canvas.width;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                this.elements.forEach(element => {
-                    let place = this.myMap.converter.globalToPage(
+                for(let i = 0;i<elemLength;i++) {
+                    let place = myMap.converter.globalToPage(
                         projection.toGlobalPixels(
-                            element,
+                            elements[i],
                             zoom
                         ));
                     ctx.beginPath();
-                place[0] = place[0]-(leftCorn[0]-800);
+                place[0] = place[0]-(leftCorn[0]-wid);
                 place[1] = place[1] - leftCorn[1];
                 ctx.arc(place[0],place[1],5,0,Math.PI*2,true);
                 ctx.stroke();
-                });
+                };
                 
               }
         }
@@ -115,74 +114,20 @@
 }
 
 
+let map;
 function test() {
-    const map = new Map('map');
     map.clear();
     let curbounds = map.bounds;
-    for (let i = 0; i < 1000; i++) {
-    map.add([(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]);
+    for (let i = 0; i < 100000; i++) {
+        map.add([(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]);
     }
     map.redraw();
-    document.getElementById("destro").addEventListener('click',() => {map.destroy()})
 }
-    ymaps.ready(test);
-
     
-
-
-    /*
-    class Map {
-        constructor() {
-            this.myMap = new ymaps.Map("map", {
-                center: [52.9650800, 36.0784900],
-                zoom: 12
-            });
-            this.ctx = canvas.getContext('2d');
-            this.masOfCirc = [];
-            let placesPane = myMap.panes.get('places').getElement();
-            const canvas = document.createElement('canvas');
-            canvas.id = 'canvas';
-            placesPane.appendChild(canvas);
-            this.draw();
-            const projection = myMap.options.get('projection');
-            this.zoom = this.myMap.getZoom();
-            myMap.events.add('boundschange', function (e) {
-                this.zoom = this.myMap.getZoom();
-                this.draw();
-            })
-        }
-        add(){
-            this.masOfCirc = [];
-            for (let i=0;i < 20; i++){
-
-            }
-        }
-        draw(){
-            let newB = this.myMap.getBounds()
-            let rCon = myMap.converter.globalToPage(
-                projection.toGlobalPixels(
-                    newB[1],
-                    myMap.getZoom()
-                ))
-            if (this.canvas.getContext){
-            this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-            this.masOfCirc.forEach(el => {
-                let pos = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        el,
-                        this.zoom
-                    ));
-                
-                    this.ctx.beginPath();
-                pos[0] = pos[0]-(rCon[0]-800);
-                pos[1] = pos[1] - rCon[1];
-
-                this.ctx.arc(pos[0],pos[1],5,0,Math.PI*2,true);
-                
-                this.ctx.stroke();
-
-            });
-
-        }}
-    }
-*/
+function init() {
+    map = new Map('map');
+    document.getElementById("destro").addEventListener('click',() => {map.destroy()})
+    setInterval(test, 1000);
+}
+    
+ymaps.ready(init);
