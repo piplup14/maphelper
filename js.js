@@ -33,9 +33,7 @@
     }
     update(id, settings){
         let elements = this.elements;
-        console.log(settings);
         let oldElement = elements.get(id);
-        console.log('upppppppppppppppppppppppp');
         let cloneObject = Object.assign(oldElement,settings);
         console.log(cloneObject);
         this.elements.set(id,cloneObject);
@@ -82,7 +80,6 @@
                 state[1] = state[1]-leftCorn[1]
                 elFromCon.moveTo(state[0], state[1]);
                 for (let z = 1;z<elFromEl.place.length;z++){
-                    console.log(elFromEl.place[z]);
                     state = myMap.converter.globalToPage(
                     projection.toGlobalPixels(
                         elFromEl.place[z],
@@ -90,7 +87,6 @@
                     ));
                     state[0] = state[0]-(leftCorn[0]-this.wid);
                     state[1] = state[1]-leftCorn[1]
-                    console.log(state);
                     elFromCon.lineTo(state[0], state[1]);
                 }
                 elFromCon.endFill();
@@ -118,7 +114,6 @@
                     ));
                 elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
                 for (let z = 1;z<elFromEl.place.length;z++){
-                    console.log(elFromEl.place[z]);
                     state = myMap.converter.globalToPage(
                     projection.toGlobalPixels(
                         elFromEl.place[z],
@@ -126,7 +121,6 @@
                     ));
                     state[0] = state[0]-(leftCorn[0]-this.wid);
                     state[1] = state[1]-leftCorn[1]
-                    console.log(state);
                     elFromCon.lineTo(state[0], state[1]);
                 }
                 elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
@@ -139,7 +133,6 @@
     }
     add(data) {
         this.elementscount++;
-        console.log(data);
         this.elements.set(data.id, data);
         console.log(this.elements);
         let graphcs = new PIXI.Graphics();
@@ -161,7 +154,10 @@
 
 let map;
 function test() {
+    let curbounds = map.bounds;
 map.clear();
+/////////////adds
+{
 //polyline
 map.add({
     id: 1002,
@@ -185,16 +181,16 @@ map.add({
     radius: 10,
     brush: '#666',
     pen: 'black',
-    place: [52.9685, 36.0750]
+    place: [52.9885, 36.0000]
 });
-
+//random circle
 map.add({
     id: 1005,
     shape: 'circle',
     radius: 10,
     brush: '#666',
     pen: 'black',
-    place: [52.9695, 36.0750]
+    place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
 });
 
 //polygon
@@ -205,6 +201,8 @@ map.add({
     pen: 'black',
     place: [[52.9772, 36.0609],[52.9651, 36.0667],[52.9614, 36.0556],[52.9665, 36.0481],[52.9759, 36.0424]]
 });
+}
+/////////////
 map.redraw();
 map.update(1001, {
     place: [52.9595, 36.0592]
@@ -215,7 +213,7 @@ function init() {
 map = new YandexMap('map');
 document.getElementById("destro").addEventListener('click',() => {map.destroy()})
 test()
-//setInterval(test, 1000);
+setInterval(test, 1000);
 }
 
 ymaps.ready(init);
