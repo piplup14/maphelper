@@ -19,7 +19,7 @@
             placesPane.appendChild(this.canvas);
             this.container = new PIXI.Container();
         
-        this.myMap.events.add('boundschange',(e) => {this.redraw();});
+        this.myMap.events.add('boundschange',() => {this.redraw();});
         /*this.myMap.events.add('click',(e) => {
             const app = this.app;
             const container = this.container;
@@ -45,92 +45,159 @@
         const projection = myMap.options.get('projection');
         let newB = myMap.getBounds();
         let zoom = myMap.getZoom();
-        let leftCorn = myMap.converter.globalToPage(
+        this.leftCorn = myMap.converter.globalToPage(
         projection.toGlobalPixels(
             newB[1],
             zoom
         ));
         const app = this.app;
-        
-        
-        //let elemLength = this.elements.size;
-        
         app.stage.addChild(this.container);
         let elements = this.elements;
         const container = this.container;
         let i = 0;
-        let state;
-        for (let curKey of elements.keys()) {
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
-        let elFromEl = elements.get(curKey);
-        let elFromCon = container.getChildAt(i);
-        elFromCon.clear();
+        for (let [curKey, elFromEl] of elements) {
+            // let elFromEl = elements.get(curKey);
+            let elFromCon = container.getChildAt(i);
+            elFromCon.clear();
+            i++;
+            this['draw_' + elFromEl.shape](curKey, elFromEl, elFromCon);
+            continue;
 
-        i++;
-        switch (elFromEl.shape){
-            case "polyline":
-                elFromCon.lineStyle(5, 'black');
-                state = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        elFromEl.place[0],
-                        zoom
-                    ));
-                state[0] = state[0]-(leftCorn[0]-this.wid);
-                state[1] = state[1]-leftCorn[1]
-                elFromCon.moveTo(state[0], state[1]);
-                for (let z = 1;z<elFromEl.place.length;z++){
+            /*switch (elFromEl.shape){
+                case "polyline":
+                    elFromCon.lineStyle(5, elFromEl.pen);
                     state = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        elFromEl.place[z],
-                        zoom
-                    ));
+                        projection.toGlobalPixels(
+                            elFromEl.place[0],
+                            zoom
+                        ));
                     state[0] = state[0]-(leftCorn[0]-this.wid);
                     state[1] = state[1]-leftCorn[1]
-                    elFromCon.lineTo(state[0], state[1]);
-                }
-                elFromCon.endFill();
-            break;
-            case "circle":
-                //elFromCon.beginFill();
-                elFromCon.lineStyle(/*border width*/3,/*border color*/ 'black', 1);
-                state = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        elFromEl.place,
-                        zoom
-                    ));
-                state[0] = state[0]-(leftCorn[0]-this.wid);
-                state[1] = state[1]-leftCorn[1]
-                elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
-                elFromCon.endFill();
-
-            break;
-            case "polygon" :
-                elFromCon.lineStyle(5, 'black');
-                let startPoint = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        elFromEl.place[0],
-                        zoom
-                    ));
-                elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
-                for (let z = 1;z<elFromEl.place.length;z++){
+                    elFromCon.moveTo(state[0], state[1]);
+                    for (let z = 1;z<elFromEl.place.length;z++){
+                        state = myMap.converter.globalToPage(
+                        projection.toGlobalPixels(
+                            elFromEl.place[z],
+                            zoom
+                        ));
+                        state[0] = state[0]-(leftCorn[0]-this.wid);
+                        state[1] = state[1]-leftCorn[1]
+                        elFromCon.lineTo(state[0], state[1]);
+                    }
+                    elFromCon.endFill();
+                break;//
+                case "circle":
+                    elFromCon.beginFill();
+                    elFromCon.lineStyle(3, elFromEl.pen, 1);
                     state = myMap.converter.globalToPage(
-                    projection.toGlobalPixels(
-                        elFromEl.place[z],
-                        zoom
-                    ));
+                        projection.toGlobalPixels(
+                            elFromEl.place,
+                            zoom
+                        ));
                     state[0] = state[0]-(leftCorn[0]-this.wid);
                     state[1] = state[1]-leftCorn[1]
-                    elFromCon.lineTo(state[0], state[1]);
-                }
-                elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
-                elFromCon.endFill();
-            break;
+                    elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
+                    elFromCon.endFill();
+
+                break;
+                case "polygon" :
+                    elFromCon.lineStyle(5, elFromEl.pen);
+                    let startPoint = myMap.converter.globalToPage(
+                        projection.toGlobalPixels(
+                            elFromEl.place[0],
+                            zoom
+                        ));
+                    elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+                    for (let z = 1;z<elFromEl.place.length;z++){
+                        state = myMap.converter.globalToPage(
+                        projection.toGlobalPixels(
+                            elFromEl.place[z],
+                            zoom
+                        ));
+                        state[0] = state[0]-(leftCorn[0]-this.wid);
+                        state[1] = state[1]-leftCorn[1]
+                        elFromCon.lineTo(state[0], state[1]);
+                    }
+                    elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+                    elFromCon.endFill();
+                break;
+            }*/
         }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            };
             
     }
+
+    draw_polygon(key, elFromEl, elFromCon){
+        let leftCorn = this.leftCorn;
+        let myMap = this.myMap;
+        let zoom = myMap.getZoom();
+        const projection = myMap.options.get('projection');
+        elFromCon.lineStyle(5, elFromEl.pen);
+        let startPoint = myMap.converter.globalToPage(
+            projection.toGlobalPixels(
+                elFromEl.place[0],
+                zoom
+            ));
+        elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+        for (let z = 1;z<elFromEl.place.length;z++){
+            let state = myMap.converter.globalToPage(
+            projection.toGlobalPixels(
+                elFromEl.place[z],
+                zoom
+            ));
+            state[0] = state[0]-(leftCorn[0]-this.wid);
+            state[1] = state[1]-leftCorn[1]
+            elFromCon.lineTo(state[0], state[1]);
+        }
+        elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+        elFromCon.endFill();
+    }
+
+    draw_circle(key, elFromEl, elFromCon) {
+        let leftCorn = this.leftCorn;
+        let myMap = this.myMap;
+        let zoom = myMap.getZoom();
+        const projection = myMap.options.get('projection');
+        //elFromCon.beginFill();
+        elFromCon.lineStyle(/*border width*/3,/*border color*/ elFromEl.pen, 1);
+        let state = myMap.converter.globalToPage(
+            projection.toGlobalPixels(
+                elFromEl.place,
+                zoom
+            ));
+        state[0] = state[0]-(leftCorn[0]-this.wid);
+        state[1] = state[1]-leftCorn[1]
+        elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
+        elFromCon.endFill();
+    }
+
+
+    draw_polyline(key, elFromEl, elFromCon) {
+        let leftCorn = this.leftCorn;
+        let myMap = this.myMap;
+        let zoom = myMap.getZoom();
+        const projection = myMap.options.get('projection');
+        elFromCon.lineStyle(5, elFromEl.pen);
+        let state = myMap.converter.globalToPage(
+            projection.toGlobalPixels(
+                elFromEl.place[0],
+                zoom
+            ));
+        state[0] = state[0]-(leftCorn[0]-this.wid);
+        state[1] = state[1]-leftCorn[1]
+        elFromCon.moveTo(state[0], state[1]);
+        for (let z = 1;z<elFromEl.place.length;z++){
+            state = myMap.converter.globalToPage(
+            projection.toGlobalPixels(
+                elFromEl.place[z],
+                zoom
+            ));
+            state[0] = state[0]-(leftCorn[0]-this.wid);
+            state[1] = state[1]-leftCorn[1]
+            elFromCon.lineTo(state[0], state[1]);
+        }
+        elFromCon.endFill();
+    }
+
     add(data) {
         this.elementscount++;
         this.elements.set(data.id, data);
@@ -142,7 +209,7 @@
     clear() {
         this.elementscount = 0;
         this.elements.clear;
-        for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);};
+        for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);}
         //this.redraw();
         console.log('clear');
     }
@@ -155,65 +222,65 @@
 let map;
 function test() {
     let curbounds = map.bounds;
-map.clear();
-/////////////adds
+    map.clear();
+    /////////////adds
 {
-//polyline
-map.add({
-    id: 1002,
-    shape: 'polyline',
-    pen: 'black',
-    shadow: 'white',
-    place: [[52.9597, 36.0825],[52.9602, 36.0849],[52.9623, 36.0838],[52.9621, 36.0828],[52.9637, 36.0801]]
-});
-//circle
-map.add({
-    id: 1001,
-    shape: 'circle',
-    radius: 10,
-    brush: '#666',
-    pen: 'black',
-    place: [52.9675, 36.0750]
-});
-map.add({
-    id: 1004,
-    shape: 'circle',
-    radius: 10,
-    brush: '#666',
-    pen: 'black',
-    place: [52.9885, 36.0000]
-});
-//random circle
-map.add({
-    id: 1005,
-    shape: 'circle',
-    radius: 10,
-    brush: '#666',
-    pen: 'black',
-    place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
-});
+    //polyline
+    map.add({
+        id: 1002,
+        shape: 'polyline',
+        pen: 'black',
+        shadow: 'white',
+        place: [[52.9597, 36.0825],[52.9602, 36.0849],[52.9623, 36.0838],[52.9621, 36.0828],[52.9637, 36.0801]]
+    });
+    //circle
+    map.add({
+        id: 1001,
+        shape: 'circle',
+        radius: 10,
+        brush: '#666',
+        pen: 'black',
+        place: [52.9675, 36.0750]
+    });
+    map.add({
+        id: 1004,
+        shape: 'circle',
+        radius: 10,
+        brush: '#666',
+        pen: 'black',
+        place: [52.9885, 36.0000]
+    });
+    //random circle
+    map.add({
+        id: 1005,
+        shape: 'circle',
+        radius: 10,
+        brush: '#666',
+        pen: 'black',
+        place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
+    });
 
-//polygon
-map.add({
-    id: 1003,
-    shape: 'polygon',
-    brush: '#666',
-    pen: 'black',
-    place: [[52.9772, 36.0609],[52.9651, 36.0667],[52.9614, 36.0556],[52.9665, 36.0481],[52.9759, 36.0424]]
-});
+    //polygon
+    map.add({
+        id: 1003,
+        shape: 'polygon',
+        brush: '#666',
+        pen: 'black',
+        place: [[52.9772, 36.0609],[52.9651, 36.0667],[52.9614, 36.0556],[52.9665, 36.0481],[52.9759, 36.0424]]
+    });
 }
-/////////////
-map.redraw();
-map.update(1001, {
-    place: [52.9595, 36.0592]
-});
+    /////////////
+    map.redraw();
+    map.update(1001, {
+        place: [52.9595, 36.0592]
+    });
 }
 
 function init() {
-map = new YandexMap('map');
-document.getElementById("destro").addEventListener('click',() => {map.destroy()})
-test()
-setInterval(test, 1000);
+    map = new YandexMap('map');
+    document.getElementById("destro").addEventListener('click',() => {map.destroy()})
+    test()
+    setInterval(test, 1000);
 }
 
 ymaps.ready(init);
