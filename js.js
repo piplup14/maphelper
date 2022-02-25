@@ -201,7 +201,7 @@
     add(data) {
         this.elementscount++;
         this.elements.set(data.id, data);
-        console.log(this.elements);
+        //console.log(this.elements);
         let graphcs = new PIXI.Graphics();
         this.container.addChild(graphcs);
         //this.redraw();
@@ -211,7 +211,7 @@
         this.elements.clear;
         for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);}
         //this.redraw();
-        console.log('clear');
+        //console.log('clear');
     }
     get bounds() {
         return this.myMap.getBounds();
@@ -221,7 +221,7 @@
 
 let map;
 function test() {
-    let curbounds = map.bounds;
+    
     map.clear();
     /////////////adds
 {
@@ -251,14 +251,6 @@ function test() {
         place: [52.9885, 36.0000]
     });
     //random circle
-    map.add({
-        id: 1005,
-        shape: 'circle',
-        radius: 10,
-        brush: '#666',
-        pen: 'black',
-        place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
-    });
 
     //polygon
     map.add({
@@ -275,12 +267,24 @@ function test() {
         place: [52.9595, 36.0592]
     });
 }
+function ran(){
+    console.log('renren');
+    let curbounds = map.bounds;
+     map.add({
+        id: 1005,
+        shape: 'circle',
+        radius: 10,
+        brush: '#666',
+        pen: 'black',
+        place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15), (Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
+    });
+}
 
 function init() {
     map = new YandexMap('map');
     document.getElementById("destro").addEventListener('click',() => {map.destroy()})
     test()
-    setInterval(test, 1000);
+    setInterval(() => { map.redraw(); ran() }, 1000);
 }
 
 ymaps.ready(init);
