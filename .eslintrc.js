@@ -12,6 +12,7 @@ module.exports = {
     },
     "globals":{
         "PIXI":true,
-        "ymaps":true
+        "ymaps":true,
+        "L":true
     }
 }

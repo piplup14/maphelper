@@ -9,6 +9,7 @@ body {
 }
 #canvas{
    position: absolute;
+   display: inline-block;
 }/*
 .ymaps-2-1-79-places-pane {
     width: 100%;

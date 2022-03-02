@@ -41,7 +41,7 @@
     }
 
     yandex_redraw_prepare(){
-        this.leftCorn = this.leftCorn;
+        //this.leftCorn = this.leftCorn;
         let myMap = this.myMap;
         this.zoom = myMap.getZoom();
         this.projection = myMap.options.get('projection');
@@ -81,7 +81,7 @@
         }).addTo(this.myMap);
         let placesPane = this.myMap.getPane('overlayPane');
         placesPane.appendChild(this.canvas);
-        this.myMap.on('moveend',() => {this.redraw();});
+        this.myMap.on('movestart',() => {this.redraw();});
     }
 
     leaflet_redraw(){
@@ -94,7 +94,7 @@
         let matr = [values[4], values[5]];
         matr[0] = -(parseFloat(matr[0]));
         matr[1] = -(parseFloat(matr[1]));
-        this.canvas.style.translate = matr[0]+'px'+' '+matr[1]+'px' ;
+        this.canvas.style.transform = "translate("+matr[0]+"px,"+matr[1]+"px)";
     }
 
     leaflet_count_pos(pos){
@@ -106,7 +106,7 @@
 
     leaflet_bounds(){
         let bounds = this.myMap.getBounds();
-        return ([[bounds.getEast(),bounds.getNorth()],[bounds.getWest(),bounds.getSouth()]]);
+        return ([[bounds.getSouth(),bounds.getWest()],[bounds.getNorth(),bounds.getEast()]]);
     }
 /////////////////////////
 
@@ -119,7 +119,6 @@
         let elements = this.elements;
         let oldElement = elements.get(id);
         let cloneObject = Object.assign(oldElement,settings);
-        //console.log(cloneObject);
         this.elements.set(id,cloneObject);
         this.redraw();
     }
@@ -129,6 +128,7 @@
         const app = this.app;
         app.stage.addChild(this.container);
         let elements = this.elements;
+        console.log('redraw');
         const container = this.container;
         let i = 0;
         for (let [curKey, elFromEl] of elements) {
@@ -162,10 +162,10 @@
 
     draw_polyline(key, elFromEl, elFromCon) {
         elFromCon.lineStyle(5, elFromEl.pen);
-        let state = this[this.choise+'_count_pos'](elFromEl.place)
+        let state = this[this.choise+'_count_pos'](elFromEl.place[0])
         elFromCon.moveTo(state[0], state[1]);
         for (let z = 1;z<elFromEl.place.length;z++){
-            state = this[this.choise+'_count_pos'](elFromEl.place)
+            state = this[this.choise+'_count_pos'](elFromEl.place[z])
             elFromCon.lineTo(state[0], state[1]);
         }
         elFromCon.endFill();
@@ -182,8 +182,6 @@
         this.elementscount = 0;
         this.elements.clear;
         for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);}
-        //this.redraw();
-        //console.log('clear');
     }
     get bounds() {
         let rez = this[this.choise+'_bounds']();
@@ -196,21 +194,14 @@
                     
 */
 
-{
+
 let map;
 function test() {
     
     map.clear();
     /////////////adds
 {
-    //polyline
-    map.add({
-        id: 1002,
-        shape: 'polyline',
-        pen: 'black',
-        shadow: 'white',
-        place: [[52.9597, 36.0825],[52.9602, 36.0849],[52.9623, 36.0838],[52.9621, 36.0828],[52.9637, 36.0801]]
-    });
+
     //circle
     map.add({
         id: 1001,
@@ -228,6 +219,16 @@ function test() {
         pen: 'black',
         place: [52.9885, 36.0000]
     });
+
+    //polyline
+    map.add({
+        id: 1002,
+        shape: 'polyline',
+        pen: 'black',
+        shadow: 'white',
+        place: [[52.9597, 36.0825],[52.9602, 36.0849],[52.9623, 36.0838],[52.9621, 36.0828],[52.9637, 36.0801]]
+    });
+    
     //random circle
 
     //polygon
@@ -240,7 +241,7 @@ function test() {
     });
 }
     /////////////
-    map.redraw();
+    //map.redraw();
     map.update(1001, {
         place: [52.9595, 36.0592]
     });
@@ -253,17 +254,16 @@ function ran(){
         radius: 10,
         brush: '#666',
         pen: 'black',
-        place: [(Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15), (Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15)]
+        place: [(Math.random() * (curbounds[1][0] - curbounds[0][0]) + curbounds[0][0]).toFixed(15),(Math.random() * (curbounds[1][1] - curbounds[0][1]) + curbounds[0][1]).toFixed(15)]
     });
 }
 
 function init() {
     map = new UniversalMap('map','leaflet');
-    document.getElementById("destro").addEventListener('click',() => {map.destroy()})
-    test()
-    map.redraw();
+    document.getElementById("destro").addEventListener('click',() => {map.destroy()});
+    test();
+    //map.redraw();
     setInterval(() => {  map.redraw();ran(); }, 1000);
 }
 
 ymaps.ready(init);
-}
