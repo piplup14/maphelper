@@ -1,10 +1,20 @@
- class UniversalMap {
+class UniversalMap {
     constructor(div,choise) {
         this.elementscount = 0;
         this.elements = new Map();
         this.elements.clear();
        
+        this.div = div;
         const mapdiv = document.getElementById(div);
+        
+        // (async () => {
+        //     let {hello,create_yandex,yandex_redraw,yandex_redraw_prepare,yandex_count_pos} = await import('./yandex_module.js');
+        //     hello();
+        //     create_yandex(this,div);
+        //     // this.create_yandex() = create_yandex;
+        //     // this.create_yandex(div);
+        // })();
+        
         
 
         this.canvas = document.createElement('canvas');
@@ -12,55 +22,21 @@
         this.app = new PIXI.Application({ width: mapdiv.offsetWidth, height: mapdiv.offsetHeight, backgroundAlpha: 0, view:this.canvas});
         this.canvas.id = 'canvas';
         this.container = new PIXI.Container();
-        this['create_' + choise](div);
         this.choise = choise;
     }
+
+    async init() {
+        const choise = this.choise;
+        let {hello,create_yandex,yandex_redraw,yandex_redraw_prepare,yandex_count_pos} = await import('./yandex_module.js');
+        hello();
+        // create_yandex(this, this.div);
+        this['create_' + choise](this, this.div);
+        // this.create_yandex() = create_yandex;
+        // this.create_yandex(div);
+    }
+
 //////////////////yandex
 
-    create_yandex(div){
-            this.wid = document.getElementById(div).offsetWidth;
-            this.myMap = new ymaps.Map(div, {
-                center: [52.9650800, 36.0784900],
-                zoom: 12
-            });
-            let placesPane = this.myMap.panes.get('places').getElement();
-            placesPane.appendChild(this.canvas);
-            this.myMap.events.add('boundschange',() => {this.redraw();});
-    }
-
-    yandex_redraw = () => {
-        this.yandex_redraw_prepare();
-        let myMap = this.myMap
-        let newB = myMap.getBounds();
-        let zoom = myMap.getZoom();
-        this.leftCorn = myMap.converter.globalToPage(
-            this.projection.toGlobalPixels(
-                newB[1],
-                zoom
-            ));
-    }
-
-    yandex_redraw_prepare(){
-        //this.leftCorn = this.leftCorn;
-        let myMap = this.myMap;
-        this.zoom = myMap.getZoom();
-        this.projection = myMap.options.get('projection');
-    }
-
-    yandex_count_pos(pos){
-        let state = this.myMap.converter.globalToPage(
-            this.projection.toGlobalPixels(
-                pos,
-                this.zoom
-            ));
-        state[0] = state[0]-(this.leftCorn[0]-this.wid);
-        state[1] = state[1]-this.leftCorn[1];
-        return (state);
-    }
-    
-    yandex_bounds(){
-        return this.myMap.getBounds();
-    }
 ///////////////////////////
     
 
@@ -259,11 +235,15 @@ function ran(){
 }
 
 function init() {
-    map = new UniversalMap('map','leaflet');
+    map = new UniversalMap('map','yandex');
+    map.init().then(() => {
+        test();
+        setInterval(() => {  map.redraw();ran(); }, 1000);
+    })
+    ;
+
     document.getElementById("destro").addEventListener('click',() => {map.destroy()});
-    test();
     //map.redraw();
-    setInterval(() => {  map.redraw();ran(); }, 1000);
 }
 
 ymaps.ready(init);
