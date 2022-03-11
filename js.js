@@ -1,66 +1,66 @@
  class YandexMap {
     constructor(div) {
         // init on div
-        this.myMap = new ymaps.Map(div, {
+        target.myMap = new ymaps.Map(div, {
             center: [52.9650800, 36.0784900],
             zoom: 12
         });
-        this.elementscount = 0;
-        this.elements = new Map();
-        this.elements.clear();
-        var placesPane = this.myMap.panes.get('places').getElement();
+        target.elementscount = 0;
+        target.elements = new Map();
+        target.elements.clear();
+        var placesPane = target.myMap.panes.get('places').getElement();
         const mapdiv = document.getElementById(div);
-        this.wid = mapdiv.offsetWidth;
-        this.canvas = document.createElement('canvas');
+        target.wid = mapdiv.offsetWidth;
+        target.canvas = document.createElement('canvas');
         
-        this.app = new PIXI.Application({ width: mapdiv.offsetWidth, height: mapdiv.offsetHeight, backgroundAlpha: 0, view:this.canvas});
+        target.app = new PIXI.Application({ width: mapdiv.offsetWidth, height: mapdiv.offsetHeight, backgroundAlpha: 0, view:target.canvas});
         
-            this.canvas.id = 'canvas';
-            placesPane.appendChild(this.canvas);
-            this.container = new PIXI.Container();
+            target.canvas.id = 'canvas';
+            placesPane.appendChild(target.canvas);
+            target.container = new PIXI.Container();
         
-        this.myMap.events.add('boundschange',() => {this.redraw();});
-        /*this.myMap.events.add('click',(e) => {
-            const app = this.app;
-            const container = this.container;
+        target.myMap.events.add('boundschange',() => {target.redraw();});
+        /*target.myMap.events.add('click',(e) => {
+            const app = target.app;
+            const container = target.container;
             console.log(container.getChildAt(0));
             console.log(container.getChildAt(1));
         });*/
     }
     destroy() {
         // remove from div and free all
-        this.myMap.destroy(); 
+        target.myMap.destroy(); 
     }
     update(id, settings){
-        let elements = this.elements;
+        let elements = target.elements;
         let oldElement = elements.get(id);
         let cloneObject = Object.assign(oldElement,settings);
         console.log(cloneObject);
-        this.elements.set(id,cloneObject);
-        this.redraw();
+        target.elements.set(id,cloneObject);
+        target.redraw();
     }
     redraw() {
         // full redraw all elements
-        let myMap = this.myMap
+        let myMap = target.myMap
         const projection = myMap.options.get('projection');
         let newB = myMap.getBounds();
         let zoom = myMap.getZoom();
-        this.leftCorn = myMap.converter.globalToPage(
+        target.leftCorn = myMap.converter.globalToPage(
         projection.toGlobalPixels(
             newB[1],
             zoom
         ));
-        const app = this.app;
-        app.stage.addChild(this.container);
-        let elements = this.elements;
-        const container = this.container;
+        const app = target.app;
+        app.stage.addChild(target.container);
+        let elements = target.elements;
+        const container = target.container;
         let i = 0;
         for (let [curKey, elFromEl] of elements) {
             // let elFromEl = elements.get(curKey);
             let elFromCon = container.getChildAt(i);
             elFromCon.clear();
             i++;
-            this['draw_' + elFromEl.shape](curKey, elFromEl, elFromCon);
+            target['draw_' + elFromEl.shape](curKey, elFromEl, elFromCon);
             continue;
 
             /*switch (elFromEl.shape){
@@ -71,7 +71,7 @@
                             elFromEl.place[0],
                             zoom
                         ));
-                    state[0] = state[0]-(leftCorn[0]-this.wid);
+                    state[0] = state[0]-(leftCorn[0]-target.wid);
                     state[1] = state[1]-leftCorn[1]
                     elFromCon.moveTo(state[0], state[1]);
                     for (let z = 1;z<elFromEl.place.length;z++){
@@ -80,7 +80,7 @@
                             elFromEl.place[z],
                             zoom
                         ));
-                        state[0] = state[0]-(leftCorn[0]-this.wid);
+                        state[0] = state[0]-(leftCorn[0]-target.wid);
                         state[1] = state[1]-leftCorn[1]
                         elFromCon.lineTo(state[0], state[1]);
                     }
@@ -94,7 +94,7 @@
                             elFromEl.place,
                             zoom
                         ));
-                    state[0] = state[0]-(leftCorn[0]-this.wid);
+                    state[0] = state[0]-(leftCorn[0]-target.wid);
                     state[1] = state[1]-leftCorn[1]
                     elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
                     elFromCon.endFill();
@@ -107,18 +107,18 @@
                             elFromEl.place[0],
                             zoom
                         ));
-                    elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+                    elFromCon.moveTo(startPoint[0]-(leftCorn[0]-target.wid), startPoint[1]-leftCorn[1]);
                     for (let z = 1;z<elFromEl.place.length;z++){
                         state = myMap.converter.globalToPage(
                         projection.toGlobalPixels(
                             elFromEl.place[z],
                             zoom
                         ));
-                        state[0] = state[0]-(leftCorn[0]-this.wid);
+                        state[0] = state[0]-(leftCorn[0]-target.wid);
                         state[1] = state[1]-leftCorn[1]
                         elFromCon.lineTo(state[0], state[1]);
                     }
-                    elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+                    elFromCon.lineTo(startPoint[0]-(leftCorn[0]-target.wid), startPoint[1]-leftCorn[1]);
                     elFromCon.endFill();
                 break;
             }*/
@@ -127,8 +127,8 @@
     }
 
     draw_polygon(key, elFromEl, elFromCon){
-        let leftCorn = this.leftCorn;
-        let myMap = this.myMap;
+        let leftCorn = target.leftCorn;
+        let myMap = target.myMap;
         let zoom = myMap.getZoom();
         const projection = myMap.options.get('projection');
         elFromCon.lineStyle(5, elFromEl.pen);
@@ -137,24 +137,24 @@
                 elFromEl.place[0],
                 zoom
             ));
-        elFromCon.moveTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+        elFromCon.moveTo(startPoint[0]-(leftCorn[0]-target.wid), startPoint[1]-leftCorn[1]);
         for (let z = 1;z<elFromEl.place.length;z++){
             let state = myMap.converter.globalToPage(
             projection.toGlobalPixels(
                 elFromEl.place[z],
                 zoom
             ));
-            state[0] = state[0]-(leftCorn[0]-this.wid);
+            state[0] = state[0]-(leftCorn[0]-target.wid);
             state[1] = state[1]-leftCorn[1]
             elFromCon.lineTo(state[0], state[1]);
         }
-        elFromCon.lineTo(startPoint[0]-(leftCorn[0]-this.wid), startPoint[1]-leftCorn[1]);
+        elFromCon.lineTo(startPoint[0]-(leftCorn[0]-target.wid), startPoint[1]-leftCorn[1]);
         elFromCon.endFill();
     }
 
     draw_circle(key, elFromEl, elFromCon) {
-        let leftCorn = this.leftCorn;
-        let myMap = this.myMap;
+        let leftCorn = target.leftCorn;
+        let myMap = target.myMap;
         let zoom = myMap.getZoom();
         const projection = myMap.options.get('projection');
         //elFromCon.beginFill();
@@ -164,7 +164,7 @@
                 elFromEl.place,
                 zoom
             ));
-        state[0] = state[0]-(leftCorn[0]-this.wid);
+        state[0] = state[0]-(leftCorn[0]-target.wid);
         state[1] = state[1]-leftCorn[1]
         elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
         elFromCon.endFill();
@@ -172,8 +172,8 @@
 
 
     draw_polyline(key, elFromEl, elFromCon) {
-        let leftCorn = this.leftCorn;
-        let myMap = this.myMap;
+        let leftCorn = target.leftCorn;
+        let myMap = target.myMap;
         let zoom = myMap.getZoom();
         const projection = myMap.options.get('projection');
         elFromCon.lineStyle(5, elFromEl.pen);
@@ -182,7 +182,7 @@
                 elFromEl.place[0],
                 zoom
             ));
-        state[0] = state[0]-(leftCorn[0]-this.wid);
+        state[0] = state[0]-(leftCorn[0]-target.wid);
         state[1] = state[1]-leftCorn[1]
         elFromCon.moveTo(state[0], state[1]);
         for (let z = 1;z<elFromEl.place.length;z++){
@@ -191,7 +191,7 @@
                 elFromEl.place[z],
                 zoom
             ));
-            state[0] = state[0]-(leftCorn[0]-this.wid);
+            state[0] = state[0]-(leftCorn[0]-target.wid);
             state[1] = state[1]-leftCorn[1]
             elFromCon.lineTo(state[0], state[1]);
         }
@@ -199,22 +199,22 @@
     }
 
     add(data) {
-        this.elementscount++;
-        this.elements.set(data.id, data);
-        //console.log(this.elements);
+        target.elementscount++;
+        target.elements.set(data.id, data);
+        //console.log(target.elements);
         let graphcs = new PIXI.Graphics();
-        this.container.addChild(graphcs);
-        //this.redraw();
+        target.container.addChild(graphcs);
+        //target.redraw();
     }
     clear() {
-        this.elementscount = 0;
-        this.elements.clear;
-        for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);}
-        //this.redraw();
+        target.elementscount = 0;
+        target.elements.clear;
+        for (var i = target.app.stage.children.length - 1; i >= 0; i--) {	target.app.stage.removeChild(target.app.stage.children[i]);}
+        //target.redraw();
         //console.log('clear');
     }
     get bounds() {
-        return this.myMap.getBounds();
+        return target.myMap.getBounds();
     }
 }
 

@@ -3,20 +3,10 @@ class UniversalMap {
         this.elementscount = 0;
         this.elements = new Map();
         this.elements.clear();
-       
+
         this.div = div;
         const mapdiv = document.getElementById(div);
         
-        // (async () => {
-        //     let {hello,create_yandex,yandex_redraw,yandex_redraw_prepare,yandex_count_pos} = await import('./yandex_module.js');
-        //     hello();
-        //     create_yandex(this,div);
-        //     // this.create_yandex() = create_yandex;
-        //     // this.create_yandex(div);
-        // })();
-        
-        
-
         this.canvas = document.createElement('canvas');
         
         this.app = new PIXI.Application({ width: mapdiv.offsetWidth, height: mapdiv.offsetHeight, backgroundAlpha: 0, view:this.canvas});
@@ -27,68 +17,14 @@ class UniversalMap {
 
     async init() {
         const choise = this.choise;
-        let {hello,create_yandex,yandex_redraw,yandex_redraw_prepare,yandex_count_pos} = await import('./yandex_module.js');
-        hello();
-        // create_yandex(this, this.div);
-        this['create_' + choise](this, this.div);
-        // this.create_yandex() = create_yandex;
-        // this.create_yandex(div);
+        let {create} = await import('./'+ choise + '_module.js');
+        create(this);
     }
-
-//////////////////yandex
-
-///////////////////////////
-    
-
-//////////////////leaflet
-
-    create_leaflet(){
-        this.myMap = L.map('map', {
-            center: [52.9650, 36.07849],
-            zoom: 12
-        });
-        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidXNlcm5hbWUxMDI5IiwiYSI6ImNrenh0cmN4MTA0dnoycHBjbWZlZDN2aGYifQ.Z3tA9UJnm7gg6xMSN8pEJw', {
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 18,
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1,
-            accessToken: 'your.mapbox.access.token'
-        }).addTo(this.myMap);
-        let placesPane = this.myMap.getPane('overlayPane');
-        placesPane.appendChild(this.canvas);
-        this.myMap.on('movestart',() => {this.redraw();});
-    }
-
-    leaflet_redraw(){
-        const test = document.querySelector('.leaflet-map-pane');
-        let tr = getComputedStyle(test).getPropertyValue('transform');
-        let values;
-        values = tr.split('(')[1],
-        values = values.split(')')[0],
-        values = values.split(',');
-        let matr = [values[4], values[5]];
-        matr[0] = -(parseFloat(matr[0]));
-        matr[1] = -(parseFloat(matr[1]));
-        this.canvas.style.transform = "translate("+matr[0]+"px,"+matr[1]+"px)";
-    }
-
-    leaflet_count_pos(pos){
-        pos[0]=parseFloat(pos[0]);
-        pos[1]=parseFloat(pos[1]);
-        let state = this.myMap.latLngToContainerPoint([pos[0],pos[1]]);
-        return ([state.x,state.y]);
-    }
-
-    leaflet_bounds(){
-        let bounds = this.myMap.getBounds();
-        return ([[bounds.getSouth(),bounds.getWest()],[bounds.getNorth(),bounds.getEast()]]);
-    }
-/////////////////////////
 
     destroy() {
         // remove from div and free all
-        this.myMap.destroy(); 
+        //this.myMap.destroy(); 
+        this.map_destroy();
     }
 
     update(id, settings){
@@ -100,7 +36,9 @@ class UniversalMap {
     }
     redraw() {
         // full redraw all elements
-        this[this.choise+'_redraw']();
+        // console.log(this);
+
+        this.map_redraw();
         const app = this.app;
         app.stage.addChild(this.container);
         let elements = this.elements;
@@ -117,11 +55,11 @@ class UniversalMap {
     }
     
     draw_polygon(key, elFromEl, elFromCon){
-        let startPoint = this[this.choise+'_count_pos'](elFromEl.place[0])
+        let startPoint = this.map_count_pos(elFromEl.place[0])
         elFromCon.lineStyle(5, elFromEl.pen);
         elFromCon.moveTo(startPoint[0], startPoint[1]);
         for (let z = 1;z<elFromEl.place.length;z++){
-            let state = this[this.choise+'_count_pos'](elFromEl.place[z])
+            let state = this.map_count_pos(elFromEl.place[z])
             elFromCon.lineTo(state[0], state[1]);
         }
         elFromCon.lineTo(startPoint[0], startPoint[1]);
@@ -130,7 +68,7 @@ class UniversalMap {
 
     draw_circle(key, elFromEl, elFromCon) {
         elFromCon.lineStyle(/*border width*/3,/*border color*/ elFromEl.pen, 1);
-        let state = this[this.choise+'_count_pos'](elFromEl.place)
+        let state = this.map_count_pos(elFromEl.place)
         elFromCon.drawCircle(state[0], state[1],elFromEl.radius)
         elFromCon.endFill();
     }
@@ -138,10 +76,10 @@ class UniversalMap {
 
     draw_polyline(key, elFromEl, elFromCon) {
         elFromCon.lineStyle(5, elFromEl.pen);
-        let state = this[this.choise+'_count_pos'](elFromEl.place[0])
+        let state = this.map_count_pos(elFromEl.place[0])
         elFromCon.moveTo(state[0], state[1]);
         for (let z = 1;z<elFromEl.place.length;z++){
-            state = this[this.choise+'_count_pos'](elFromEl.place[z])
+            state = this.map_count_pos(elFromEl.place[z])
             elFromCon.lineTo(state[0], state[1]);
         }
         elFromCon.endFill();
@@ -160,7 +98,7 @@ class UniversalMap {
         for (var i = this.app.stage.children.length - 1; i >= 0; i--) {	this.app.stage.removeChild(this.app.stage.children[i]);}
     }
     get bounds() {
-        let rez = this[this.choise+'_bounds']();
+        let rez = this.map_bounds();
         return rez;
     }
 
@@ -235,7 +173,29 @@ function ran(){
 }
 
 function init() {
-    map = new UniversalMap('map','yandex');
+
+    let i = 1;
+    document.getElementById("changeMap").addEventListener('click',() =>{
+        if (i==1) {
+            if (map) map.destroy();
+            map = new UniversalMap('map','leaflet');
+            map.init().then(() => {
+                test();
+            });
+            i--;
+        } else {
+            if (map) map.destroy();
+            map = new UniversalMap('map','yandex');
+            map.init().then(() => {
+                test();
+            });
+            i++;
+        }
+    });
+
+
+    /////
+    map = new UniversalMap('map','leaflet');
     map.init().then(() => {
         test();
         setInterval(() => {  map.redraw();ran(); }, 1000);
@@ -247,3 +207,10 @@ function init() {
 }
 
 ymaps.ready(init);
+
+// const help = () =>{
+//     let a = 5;
+//     return a;
+// }
+
+// console.log(help());
