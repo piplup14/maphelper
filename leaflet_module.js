@@ -47,6 +47,7 @@ function    leaflet_redraw() {
         return ([[bounds.getSouth(),bounds.getWest()],[bounds.getNorth(),bounds.getEast()]]);
     }
     function leaflet_destroy() {
+        this.canvas.style.transform = "translate(0px,0px)";
         this.myMap.remove()
     }
 

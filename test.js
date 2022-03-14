@@ -15,8 +15,7 @@ class UniversalMap {
         this.choise = choise;
     }
 
-    async init() {
-        const choise = this.choise;
+    async init(choise) {
         let {create} = await import('./'+ choise + '_module.js');
         create(this);
     }
@@ -174,35 +173,41 @@ function ran(){
 
 function init() {
 
+    // if (map) map.destroy();
+    //         map = new UniversalMap('map','leaflet');
+    //         map.init().then(() => {
+    //             test();
+    //         });
+            
+
     let i = 1;
-    document.getElementById("changeMap").addEventListener('click',() =>{
+    document.getElementById("changeMapY").onclick = () =>{
+        if (i==0) {
+            if (map) map.destroy();
+            map.init('yandex').then(() => {
+                test();
+            });
+            i=1;
+        } 
+    };
+    document.getElementById("changeMapL").onclick = () =>{
         if (i==1) {
             if (map) map.destroy();
-            map = new UniversalMap('map','leaflet');
-            map.init().then(() => {
+            map.init('leaflet').then(() => {
                 test();
             });
-            i--;
-        } else {
-            if (map) map.destroy();
-            map = new UniversalMap('map','yandex');
-            map.init().then(() => {
-                test();
-            });
-            i++;
-        }
-    });
-
+            i=0;
+        } 
+    };
 
     /////
-    map = new UniversalMap('map','leaflet');
-    map.init().then(() => {
+    map = new UniversalMap('map','yandex');
+    map.init('yandex').then(() => {
         test();
         setInterval(() => {  map.redraw();ran(); }, 1000);
-    })
-    ;
+    });
 
-    document.getElementById("destro").addEventListener('click',() => {map.destroy()});
+    //document.getElementById("destro").addEventListener('click',() => {map.destroy()});
     //map.redraw();
 }
 
