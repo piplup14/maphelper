@@ -1,5 +1,5 @@
 class UniversalMap {
-    constructor(div,choise) {
+    constructor(div) {
         this.elementscount = 0;
         this.elements = new Map();
         this.elements.clear();
@@ -12,7 +12,6 @@ class UniversalMap {
         this.app = new PIXI.Application({ width: mapdiv.offsetWidth, height: mapdiv.offsetHeight, backgroundAlpha: 0, view:this.canvas});
         this.canvas.id = 'canvas';
         this.container = new PIXI.Container();
-        this.choise = choise;
     }
 
     async init(choise) {
@@ -201,7 +200,7 @@ function init() {
     };
 
     /////
-    map = new UniversalMap('map','yandex');
+    map = new UniversalMap('map');
     map.init('yandex').then(() => {
         test();
         setInterval(() => {  map.redraw();ran(); }, 1000);
